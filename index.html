@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prussia & Glory - Sistema de Inteligencia Táctica</title>
+    <style>
+        /* --- ESTILOS GENERALES Y CONFIGURACIÓN RESETS --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #080a0c;
+            color: #d1d5db;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+        }
+
+        /* --- EFECTOS CRT Y ESTÁTICA PARA TODA LA PANTALLA --- */
+        /* 1. Líneas de escaneo CRT */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 9999;
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* 2. Ruido de estática (Generado por SVG en base64 para evitar imágenes externas) */
+        .noise-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            opacity: 0.05; /* Intensidad de la estática */
+            z-index: 9998;
+            background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+            animation: moveNoise 0.2s infinite alternate; /* Hace que la estática "baile" */
+        }
+
+        @keyframes moveNoise {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(-1%, 1%); }
+            40% { transform: translate(1%, -1%); }
+            60% { transform: translate(-2%, -1%); }
+            80% { transform: translate(1%, 2%); }
+            100% { transform: translate(-1%, 0); }
+        }
+
+        /* 3. Animación de distorsión (Glitch momentáneo) */
+        .glitch-active {
+            animation: glitch-skew 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+            filter: contrast(1.4) brightness(1.2) drop-shadow(3px 0 0 rgba(255,0,0,0.4)) drop-shadow(-3px 0 0 rgba(0,255,255,0.4));
+        }
+
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg, 0deg); }
+            20% { transform: skew(-3deg, 0deg); }
+            40% { transform: skew(3deg, 0deg); }
+            60% { transform: skew(-1deg, 0deg); }
+            80% { transform: skew(2deg, 0deg); }
+            100% { transform: skew(0deg, 0deg); }
+        }
+
+        /* --- PANTALLA DE CARGA RETRO --- */
+        #loader-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #040805;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: #00ff33;
+            text-shadow: 0 0 4px rgba(0,255,51,0.6);
+        }
+
+        .terminal-box {
+            width: 100%;
+            max-width: 700px;
+            height: 350px;
+            border: 1px solid #00ff33;
+            box-shadow: 0 0 15px rgba(0, 255, 51, 0.2);
+            background-color: #020402;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .terminal-header {
+            border-bottom: 1px dashed #00ff33;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-size: 11pt;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .terminal-logs {
+            flex-grow: 1;
+            font-size: 10pt;
+            line-height: 1.5;
+            overflow: hidden;
+        }
+
+        .log-line {
+            opacity: 0;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            animation: typeIn 0.1s forwards;
+        }
+
+        @keyframes typeIn {
+            to { opacity: 1; }
+        }
+
+        .progress-container {
+            margin-top: 20px;
+        }
+
+        .progress-text {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar-border {
+            width: 100%;
+            border: 1px solid #00ff33;
+            height: 20px;
+            padding: 2px;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background-color: #00ff33;
+            box-shadow: 0 0 8px #00ff33;
+            transition: width 0.1s linear;
+        }
+
+        /* --- INTERFAZ PRINCIPAL DE LA APLICACIÓN --- */
+        #main-app {
+            display: none; /* Se activa tras la carga */
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            position: relative; /* Necesario para la estática */
+        }
+
+        /* --- CABECERO SUPERIOR --- */
+        header {
+            width: 100%;
+            background-color: #16191e;
+            border-bottom: 2px solid #2d333f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            height: 65px;
+            flex-shrink: 0;
+        }
+
+        .logo-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #ffffff;
+            letter-spacing: 2px;
+            border-left: 3px solid #ffb000;
+            padding-left: 10px;
+        }
+
+        nav {
+            display: flex;
+            height: 100%;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-family: inherit;
+            font-size: 10pt;
+            font-weight: bold;
+            letter-spacing: 1px;
+            padding: 0 25px;
+            cursor: pointer;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .nav-btn:hover {
+            color: #ffffff;
+            background-color: #1f242c;
+        }
+
+        .nav-btn.active {
+            color: #ffb000;
+            background-color: #1f242c;
+            border-bottom: 3px solid #ffb000;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL INTERIOR --- */
+        .workspace {
+            display: flex;
+            flex-grow: 1;
+            width: 100%;
+            height: calc(100% - 65px);
+        }
+
+        #map-wrapper {
+            width: 70%;
+            height: 100%;
+            background-color: #0f1115;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .map-layer {
+            display: none;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .map-layer.active {
+            display: flex;
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+            max-height: 85vh;
+        }
+
+        svg path, svg g {
+            cursor: pointer;
+            transition: fill 0.25s ease, filter 0.25s ease, stroke 0.25s ease;
+        }
+
+        svg path:hover, svg g:hover {
+            fill: #ffb000 !important;
+            filter: drop-shadow(0px 0px 8px rgba(255, 176, 0, 0.7));
+            stroke: #ffffff !important;
+            stroke-width: 1.5px !important;
+        }
+
+        .placeholder-box {
+            border: 1px dashed #4b5563;
+            padding: 30px;
+            text-align: center;
+            max-width: 500px;
+            color: #9ca3af;
+            background-color: #13161c;
+            border-radius: 4px;
+        }
+        
+        .placeholder-box code {
+            display: block;
+            background-color: #07080a;
+            padding: 10px;
+            margin-top: 15px;
+            color: #33ff33;
+            text-align: left;
+            font-size: 9pt;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+
+        /* --- PANEL LATERAL --- */
+        #lore-sidebar {
+            width: 30%;
+            height: 100%;
+            background-color: #13161b;
+            border-left: 2px solid #2d333f;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            background-color: #1a1e24;
+            padding: 20px;
+            border-bottom: 1px solid #2d333f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .classification-badge {
+            background-color: #dc2626;
+            color: #ffffff;
+            font-size: 8pt;
+            font-weight: bold;
+            padding: 3px 8px;
+            letter-spacing: 1px;
+            border-radius: 2px;
+            box-shadow: 0 0 5px rgba(220, 38, 38, 0.4);
+        }
+
+        .sidebar-content {
+            padding: 25px;
+            flex-grow: 1;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        #nacion-titulo {
+            font-size: 16pt;
+            color: #ffffff;
+            margin-bottom: 5px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        #nacion-subtitulo {
+            font-size: 9pt;
+            color: #ffb000;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, #ffb000 0%, transparent 100%);
+            margin-bottom: 20px;
+        }
+
+        #nacion-lore {
+            font-size: 10.5pt;
+            color: #9ca3af;
+            text-align: justify;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CAPA DE ESTÁTICA PARA TODA LA PÁGINA -->
+    <div class="noise-overlay"></div>
+
+    <!-- 1. PANTALLA DE CARGA RETRO -->
+    <div id="loader-screen">
+        <div class="terminal-box">
+            <div class="terminal-header">PRUSSIA & GLORY // MAIN INTERFACE v4.0</div>
+            <div class="terminal-logs" id="terminal-logs"></div>
+            <div class="progress-container">
+                <div class="progress-text">
+                    <span>SISTEMA DE CARGA: BAJANDO MAPAS</span>
+                    <span id="load-percentage">0%</span>
+                </div>
+                <div class="progress-bar-border">
+                    <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. INTERFAZ PRINCIPAL -->
+    <div id="main-app">
+        <!-- CABECERO SUPERIOR -->
+        <header>
+            <div class="logo-title">PRUSSIA & GLORY [1940]</div>
+            <nav>
+                <button class="nav-btn active" onclick="cambiarContinente('europa', this)">EUROPA</button>
+                <button class="nav-btn" onclick="cambiarContinente('america', this)">AMÉRICA</button>
+                <button class="nav-btn" onclick="cambiarContinente('asia', this)">ASIA</button>
+            </nav>
+        </header>
+
+        <!-- ESPACIO DE TRABAJO -->
+        <div class="workspace">
+            <div id="map-wrapper">
+                
+                <!-- CAPA EUROPA -->
+                <div id="map-europa" class="map-layer active">
+                    <div class="placeholder-box">
+                        <h3>[ CAPA VECTORIAL DE EUROPA ]</h3>
+                        <p style="margin-top: 10px; font-size: 10pt;">Pega aquí el código SVG de tu mapa de Europa reemplazando este recuadro completo.</p>
+                    </div>
+                </div>
+
+                <!-- CAPA AMÉRICA -->
+                <div id="map-america" class="map-layer">
+                    <div class="placeholder-box">
+                        <h3>[ CAPA VECTORIAL DE AMÉRICA ]</h3>
+                        <p style="margin-top: 10px; font-size: 10pt;">Pega aquí el código SVG de tu mapa de América.</p>
+                    </div>
+                </div>
+
+                <!-- CAPA ASIA -->
+                <div id="map-asia" class="map-layer">
+                    <div class="placeholder-box">
+                        <h3>[ CAPA VECTORIAL DE ASIA ]</h3>
+                        <p style="margin-top: 10px; font-size: 10pt;">Pega aquí el código SVG de tu mapa de Asia.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PANEL LATERAL -->
+            <div id="lore-sidebar">
+                <div class="sidebar-header">
+                    <span style="font-size: 9pt; font-weight: bold; color: #6b7280;">ID: ARCHIVE-1940</span>
+                    <span class="classification-badge">CLASIFICADO</span>
+                </div>
+                <div class="sidebar-content">
+                    <div id="nacion-titulo">Terminal Táctica</div>
+                    <div id="nacion-subtitulo">Seleccione un Territorio</div>
+                    <div class="divider"></div>
+                    <div id="nacion-lore">
+                        Esperando señal de red... Haga clic sobre una nación o región en el mapa activo para sincronizar las bases de datos de inteligencia militar.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS DE LORE ---
+        const baseDeDatosLore = {
+            "reino-prusia": { nombre: "Reino de Prusia", subtitulo: "Potencia Hegemónica Europea / Eje Central", lore: "La espina dorsal militar..." },
+            "gran-imperio-polaco": { nombre: "Gran Imperio Polaco", subtitulo: "Estado Militarizado Continental", lore: "Surgido como un baluarte estratégico..." }
+        };
+
+        // --- SISTEMA DE LOGS ---
+        const logMessages = [
+            "CONNECTING TO PRUSSIA & GLORY MAINNET...",
+            "ESTABLISHING SECURE PROTOCOL (DES-3)...",
+            "INITIALIZING GRAPHICAL VECTOR ENGINE...",
+            "DECRYPTING GEOPOLITICAL COORDINATES...",
+            "LOADING REGIONAL INTERFACES...",
+            "SYNCHRONIZING INTELLIGENCE FILES...",
+            "TACTICAL MAP INTERACTIVE SYSTEM READY."
+        ];
+
+        let logIndex = 0;
+        const logsContainer = document.getElementById("terminal-logs");
+
+        function addLogLine() {
+            if (logIndex < logMessages.length) {
+                const line = document.createElement("div");
+                line.className = "log-line";
+                line.innerText = `> ${logMessages[logIndex]}`;
+                logsContainer.appendChild(line);
+                logIndex++;
+                setTimeout(addLogLine, 300);
+            }
+        }
+
+        // --- SOLUCIÓN: CÓDIGO DEL CONTADOR DE CARGA CORREGIDO ---
+        let currentPercent = 0;
+        const percentText = document.getElementById("load-percentage");
+        const barFill = document.getElementById("progress-bar-fill");
+        const loaderScreen = document.getElementById("loader-screen");
+        const mainApp = document.getElementById("main-app");
+
+        function updateLoader() {
+            if (currentPercent < 100) {
+                // Avanzamos el porcentaje
+                let nextStep = Math.floor(Math.random() * 6) + 2;
+                currentPercent += nextStep;
+                
+                if(currentPercent >= 100) {
+                    currentPercent = 100;
+                }
+                
+                percentText.innerText = `${currentPercent}%`;
+                barFill.style.width = `${currentPercent}%`;
+                
+                // Si aún no hemos llegado, nos volvemos a llamar
+                if (currentPercent < 100) {
+                    setTimeout(updateLoader, 70);
+                } else {
+                    // Hemos llegado exactamente a 100, activamos la transición
+                    setTimeout(finalizarCarga, 600);
+                }
+            }
+        }
+
+        function finalizarCarga() {
+            // Ocultamos la pantalla de carga y mostramos la app
+            loaderScreen.style.display = "none";
+            mainApp.style.display = "flex";
+            
+            // Iniciamos las distorsiones (glitches) aleatorias
+            iniciarGlitchAleatorio();
+        }
+
+        window.onload = function() {
+            addLogLine();
+            setTimeout(updateLoader, 500);
+        };
+
+        // --- EFECTO DE GLITCH (DISTORSIÓN MOMENTÁNEA) ---
+        function iniciarGlitchAleatorio() {
+            const tiempoHastaProximoGlitch = Math.random() * 12000 + 4000; // Entre 4 y 16 segundos
+            
+            setTimeout(() => {
+                // Aplicar la clase de distorsión
+                mainApp.classList.add('glitch-active');
+                
+                // Sonido de estática opcional (comentado por defecto para no molestar)
+                // const audio = new Audio('data:audio/wav;base64,UklGRl9vT19... (ruido blanco)');
+                // audio.play();
+                
+                // Quitar la distorsión muy rápido (0.2 a 0.4 segundos)
+                setTimeout(() => {
+                    mainApp.classList.remove('glitch-active');
+                    // Volver a programar el siguiente glitch
+                    iniciarGlitchAleatorio();
+                }, Math.random() * 200 + 150);
+
+            }, tiempoHastaProximoGlitch);
+        }
+
+        // --- INTERCAMBIO DE CONTINENTES ROBUSTO ---
+        function cambiarContinente(continenteId, btnElement) {
+            // 1. Quitar activo de todos los botones
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // 2. Poner activo al botón clickeado
+            if (btnElement) {
+                btnElement.classList.add('active');
+            }
+
+            // 3. Ocultar todos los mapas
+            const layers = document.querySelectorAll('.map-layer');
+            layers.forEach(layer => layer.classList.remove('active'));
+
+            // 4. Mostrar el mapa seleccionado
+            const targetLayer = document.getElementById(`map-${continenteId}`);
+            if (targetLayer) {
+                targetLayer.classList.add('active');
+            }
+        }
+
+        // --- MANEJADOR DE CLICS DEL MAPA ---
+        document.addEventListener("click", function(evento) {
+            const element = evento.target;
+            if (element.tagName === 'path' || element.closest('g')) {
+                const idNacion = element.id || (element.closest('g') ? element.closest('g').id : null);
+                if (idNacion) mostrarLoreEnPanel(idNacion);
+            }
+        });
+
+        function mostrarLoreEnPanel(idNacion) {
+            const info = baseDeDatosLore[idNacion];
+            const titulo = document.getElementById('nacion-titulo');
+            const subtitulo = document.getElementById('nacion-subtitulo');
+            const loreText = document.getElementById('nacion-lore');
+
+            if (info) {
+                titulo.innerText = info.nombre;
+                subtitulo.innerText = info.subtitulo;
+                loreText.innerText = info.lore;
+            } else {
+                const nombreProvisional = idNacion.replace(/-/g, ' ').toUpperCase();
+                titulo.innerText = nombreProvisional;
+                subtitulo.innerText = "REGISTRO DE INTELIGENCIA MILITAR";
+                loreText.innerText = `[ ARCHIVO CLASIFICADO ]\n\nEl ID detectado en el mapa es "${idNacion}". El sistema está listo para recibir el lore detallado de esta región. Copia este ID y utilízalo en tu base de datos para rellenar este panel con su historia militar, líderes y estado en 1940.`;
+            }
+        }
+    </script>
+</body>
+</html>
+"""
+
+# Guardar el contenido en un archivo index.html
+with open("index.html", "w", encoding="utf-8") as file:
+    file.write(html_content)
+print("Archivo index.html actualizado exitosamente.")
