@@ -2,7 +2,6 @@
 <ns0:svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns2="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" id="wrapper" viewBox="0 0 1000 1000" preserveAspectRatio="xMinYMin" height="100" width="100" style="background-color: rgb(0, 0, 0);"><ns0:metadata>
     <rdf:rdf>
       <ns2:work rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
         <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
         <ns2:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/" />
       </ns2:work>
