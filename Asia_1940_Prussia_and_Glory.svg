@@ -1,17 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns1="http://creativecommons.org/ns#" xmlns:ns3="http://www.w3.org/2000/svg" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" id="wrapper" viewBox="0 0 1000 763.33" preserveAspectRatio="xMinYMin" height="763.33" width="1000" style="background-color: rgb(37, 37, 37);"><metadata>
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns1="http://creativecommons.org/ns#" xmlns:ns3="http://www.w3.org/2000/svg" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" id="wrapper" viewBox="0 0 1000 763.33" preserveAspectRatio="xMinYMin" height="100" width="100" style="background-color: rgb(37, 37, 37);"><metadata>
     <rdf:rdf>
       <ns1:work rdf:about="">
         <dc:format>image/svg+xml</dc:format>
         <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title>MapChart Map</dc:title>
-        <dc:creator>
-          <ns1:agent>
-            <dc:title>MapChart.net</dc:title>
-          </ns1:agent>
-        </dc:creator>
         <ns1:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/" />
-        <dc:description>This map was created with MapChart.net, a website for creating custom maps.</dc:description>
       </ns1:work>
       <ns1:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/">
         <ns1:permits rdf:resource="http://creativecommons.org/ns#Reproduction" />
