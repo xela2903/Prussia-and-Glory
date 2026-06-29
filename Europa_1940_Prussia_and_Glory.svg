@@ -4,14 +4,7 @@
       <ns1:work rdf:about="">
         <dc:format>image/svg+xml</dc:format>
         <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title>MapChart Map</dc:title>
-        <dc:creator>
-          <ns1:agent>
-            <dc:title>MapChart.net</dc:title>
-          </ns1:agent>
-        </dc:creator>
         <ns1:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/" />
-        <dc:description>This map was created with MapChart.net, a website for creating custom maps.</dc:description>
       </ns1:work>
       <ns1:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/">
         <ns1:permits rdf:resource="http://creativecommons.org/ns#Reproduction" />
