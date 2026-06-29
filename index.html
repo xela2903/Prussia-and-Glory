@@ -388,7 +388,8 @@
             <div class="logo-title">PRUSSIA & GLORY [1940]</div>
             <nav>
                 <button class="nav-btn active" onclick="cambiarContinente('europa', this)">EUROPA</button>
-                <button class="nav-btn" onclick="cambiarContinente('america', this)">AMÉRICA</button>
+                <button class="nav-btn" onclick="cambiarContinente('america', this)">AMÉRICA DEL NORTE</button>
+                <button class="nav-btn" onclick="cambiarContinente('america', this)">AMÉRICA DEL SUR</button>              
                 <button class="nav-btn" onclick="cambiarContinente('asia', this)">ASIA</button>
             </nav>
         </header>
@@ -406,11 +407,20 @@
                     </div>
                 </div>
 
-                <!-- CAPA AMÉRICA -->
+                <!-- CAPA AMÉRICA DEL NORTE-->
                 <div id="map-america" class="map-layer">
                     <div class="placeholder-box">
                         <p style="margin-top: 10px; font-size: 10pt;">
-                            <object data="America_1940_Prussia_and_Glory.svg" type="image/svg+xml" style="width: 500%; height: 500%; overflow: hidden;" scrolling="no"></object>
+                            <object data="AmericaNorte.svg" type="image/svg+xml" style="width: 500%; height: 500%; overflow: hidden;" scrolling="no"></object>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- CAPA AMÉRICA DEL SUR-->
+                <div id="map-america" class="map-layer">
+                    <div class="placeholder-box">
+                        <p style="margin-top: 10px; font-size: 10pt;">
+                            <object data="AmericaSur.svg" type="image/svg+xml" style="width: 500%; height: 500%; overflow: hidden;" scrolling="no"></object>
                         </p>
                     </div>
                 </div>
