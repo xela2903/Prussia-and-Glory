@@ -1,17 +1,9 @@
 <?xml version="1.0" standalone="no"?>
-<svg id="wrapper" viewBox="0 0 1000 1000" preserveAspectRatio="xMinYMin" height="1000" width="1000" style="background-color: rgb(0, 0, 0); cursor: auto;"><metadata>
+<svg id="wrapper" viewBox="0 0 1000 1000" preserveAspectRatio="xMinYMin" height="100" width="100" style="background-color: rgb(0, 0, 0); cursor: auto;"><metadata>
     <rdf:rdf xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
       <cc:work rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
         <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type>
-        <dc:title>MapChart Map</dc:title>
-        <dc:creator>
-          <cc:agent>
-            <dc:title>MapChart.net</dc:title>
-          </cc:agent>
-        </dc:creator>
         <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license>
-        <dc:description>This map was created with MapChart.net, a website for creating custom maps.</dc:description>
       </cc:work>
       <cc:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/">
         <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"></cc:permits>
