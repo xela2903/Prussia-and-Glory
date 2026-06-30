@@ -4,7 +4,6 @@
     <!-- Definiciones principales -->
     <defs>
         <style>
-           <rdf:rdf xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
           <cc:work rdf:about="">
             <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type>
             <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license>
@@ -16,7 +15,6 @@
             <cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"></cc:requires>
             <cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"></cc:requires>
           </cc:license>
-        </rdf:rdf>
         </style>
         </style>
     </defs>
